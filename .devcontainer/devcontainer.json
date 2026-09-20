@@ -1,0 +1,19 @@
+{
+    "name": "stubidp dev container",
+    "image": "stubidp-devcontainer-base:latest",
+    "customizations": {
+      "vscode": {
+        "extensions": [
+        "ms-dotnettools.csharp",
+          "ms-mssql.mssql",
+          "ms-dotnettools.csdevkit",
+          "pflannery.vscode-versionlens"
+        ]
+      }
+  },
+  "runArgs": [
+    "--add-host=host.docker.internal:host-gateway",
+    "--name",
+    "stubidp_dev_container"
+  ]
+}
