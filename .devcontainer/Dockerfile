@@ -15,10 +15,9 @@ RUN dotnet tool install --global dotnet-ef && \
 # Nodejs 26
 RUN curl -sL https://deb.nodesource.com/setup_26.x | bash \
     && apt-get install nodejs -yq 
-# PNPM
-ENV SHELL=/bin/bash
-RUN curl -fsSL https://get.pnpm.io/install.sh | sh -
+RUN npm install -g npm@latest
 
 # Open Spec
+RUN npm install -g @fission-ai/openspec@latest
 
 # Open Code
