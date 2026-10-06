@@ -1,0 +1,24 @@
+{
+    "name": "stubidp dev container",
+    "image": "stubidp-devcontainer-base:latest",
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "ms-dotnettools.csharp",
+                "ms-mssql.mssql",
+                "ms-dotnettools.csdevkit",
+                "pflannery.vscode-versionlens"
+            ]
+        }
+    },
+    "mounts": [
+        "source=${localEnv:HOME}/.config/opencode,target=/root/.config/opencode,type=bind,consistency=cached",
+        "source=${localEnv:HOME}/.config/opencode/opencode.json,target=/root/.config/opencode/opencode.json,type=bind,readonly",
+        "source=${localEnv:HOME}/.local/share/opencode,target=/root/.local/share/opencode,type=bind,consistency=cached"
+    ],
+    "runArgs": [
+        "--add-host=host.docker.internal:host-gateway",
+        "--name",
+        "stubidp_dev_container"
+    ]
+}
