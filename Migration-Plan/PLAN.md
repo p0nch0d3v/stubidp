@@ -195,7 +195,9 @@ Bound via Options Pattern (`StubIdpOptions`, validated with `IValidateOptions`).
 - 📄 `Task04_SamlProtocolBridges.md`
 
 ### Task05 — Port models (assertion, logout, discovery, manage, metadata)
-- **Goal:** Port all 8 model classes to `new/src/.../Models/`, replacing
+- **Goal:** Port all 10 model classes (`AssertionModel`, `AttributeStatementModel`,
+  `HomePageModel`, `IdpConfigurationModel`, the three logout models, `DiscoveryServiceModel`,
+  `ManageIdpModel`, `MetadataModel`) to `new/src/.../Models/`, replacing
   `ConfigurationManager.AppSettings` with `IOptions<StubIdpOptions>` and static
   `CertificateHelper`/`UrlResolver` with injected services; keep DataAnnotations attributes for
   `EditForm` validation; `MetadataModel` → `MetadataService` building signed
@@ -366,6 +368,29 @@ Bound via Options Pattern (`StubIdpOptions`, validated with `IValidateOptions`).
   built-in `EditForm` antiforgery.
 - Character-for-character preservation of externally visible payloads (SAML XML, redirect query
   composition, metadata content types, ETag semantics) takes precedence over internal elegance.
+- **XML docs:** all public types and members carry XML documentation comments (`<summary>`,
+  `<param>`, `<returns>`); enable `<GenerateDocumentationFile>` in the production project.
+- **Namespaces mirror folders** under the root namespace:
+  `Sustainsys.Saml2.StubIdp.{Configuration|Services|Models|Endpoints|Saml|Components}`; tests mirror
+  the same structure.
+- **DI style:** use primary-constructor syntax for injected services where it fits
+  (`public class TenantConfigurationStore(...)`) and guard every public service method argument with
+  `ArgumentNullException.ThrowIfNull(...)`; add null-parameter validation tests alongside the
+  existing null-lookup tests.
+- **Logging:** structured `ILogger<T>` with meaningful scope (e.g. tenant GUID); `Microsoft.Extensions.Logging`
+  ships in the shared framework — no new packages. Never log SAML payloads, certificate passwords,
+  or tenant secrets.
+- **Async I/O:** all file/network I/O in services is async (`File.ReadAllTextAsync`,
+  `File.WriteAllTextAsync`, `ReadFormAsync`, …) and accepts a `CancellationToken` where the caller
+  has one.
+- **Localization exception:** externally visible strings (SAML/validation messages) stay literal for
+  legacy character-for-character parity — `ResourceManager`/`LogMessages`/`ErrorMessages` resource
+  files are deliberately **not** used in this migration.
+- **Certificate lifetime:** `X509Certificate2` instances are owned by the singleton certificate
+  service for the application lifetime; never dispose them per request (implement `IDisposable` on
+  the service only if certificates are ever reloaded).
+- `ConfigureAwait(false)` only in library-style code without ASP.NET Core context; endpoint and
+  component code omits it.
 
 ## 5. Execution workflow
 1. ✅ This `PLAN.md`.
