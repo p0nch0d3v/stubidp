@@ -64,7 +64,7 @@ test tasks).
 
 ## 2. Target Architecture
 
-### 2.1 Solution layout (created by Task01)
+### 2.1 Solution layout (created by Task01 — ✅ in place)
 ```
 new/
   StubIdp.slnx
@@ -148,7 +148,10 @@ Bound via Options Pattern (`StubIdpOptions`, validated with `IValidateOptions`).
 
 ## 3. Task List (sequential)
 
-### Task01 — Scaffold solution, projects, and test skeleton
+**Progress:** Task01 ✅ completed · Task02 … Task16 ⏳ pending. A task is done only when its own
+test phase passes (`dotnet test new/StubIdp.slnx`).
+
+### Task01 — Scaffold solution, projects, and test skeleton ✅
 - **Goal:** Create `new/StubIdp.slnx`, the Blazor Web App (`net10.0`, `--interactivity Server`,
   per-component interactivity), both test projects, add all pinned package references
   (Sustainsys.Saml2 2.11.0, JsonSchema.Net 9.4.0, test stack), delete template sample pages
@@ -157,6 +160,12 @@ Bound via Options Pattern (`StubIdpOptions`, validated with `IValidateOptions`).
 - **Key outputs:** `new/StubIdp.slnx`, `new/src/Sustainsys.Saml2.StubIdp/`, `new/tests/...`.
 - **Test phase:** solution builds; smoke unit test and a `WebApplicationFactory` smoke test
   (GET `/` → 200) pass.
+- **Status:** ✅ done — build 0 errors, 1/1 unit + 1/1 integration test green.
+  `<GenerateDocumentationFile>` was enabled already here; both test projects have a
+  `ProjectReference` to the production project; template bootstrap assets retained for Task10.
+  Two carry-over items recorded in the task file: the template's
+  `BlazorDisableThrowNavigationException=true` (decide in Task13) and the transitive
+  NU1903/NU1904 advisories from `Sustainsys.Saml2` 2.11.0 (document in Task16).
 - 📄 `Task01_ScaffoldSolution.md`
 
 ### Task02 — Configuration, options, and data files
@@ -310,6 +319,10 @@ Bound via Options Pattern (`StubIdpOptions`, validated with `IValidateOptions`).
   fields, defaults `returnIDParam=entityID`, `SelectedIdp`=metadata URL). Redirect URL building
   (`?` vs `&` delimiter) exactly as legacy. Static-SSR redirect mechanism documented
   (`NavigationManager` + `NavigationException` or minimal endpoint — chosen in task file).
+  **Carry-over from Task01:** the production csproj still carries the template's
+  `<BlazorDisableThrowNavigationException>true</BlazorDisableThrowNavigationException>`; the
+  `NavigationException` variant requires flipping it to `false`, the minimal-endpoint variant does
+  not. Decide here.
 - **Legacy sources:** `Controllers/DiscoveryServiceController.cs`,
   `Views/DiscoveryService/Index.cshtml`, `Models/DiscoveryServiceModel.cs`.
 - **Test phase:** bUnit — form render + defaults; integration — GET passive → 302
@@ -350,7 +363,10 @@ Bound via Options Pattern (`StubIdpOptions`, validated with `IValidateOptions`).
   management, route map); `.gitignore` additions (`.user-secrets` id note, `App_Data/*.pfx`
   handling decision); `libman.json` restore wired into build (`dotnet build` runs
   `libman restore` via target or documented step); final `dotnet build` + `dotnet test` full pass;
-  update repository-level docs if required.
+  update repository-level docs if required. **Carry-over from Task01:** document the accepted
+  transitive NuGet advisories (NU1903 `Newtonsoft.Json` 10.0.1, NU1904 `System.Drawing.Common`
+  4.7.0 — both via `Sustainsys.Saml2` 2.11.0) in the `new/` README, including why they are not
+  resolved (pinned-version rule).
 - **Test phase:** clean-checkout simulation (restore → build → test) passes from scratch.
 - 📄 `Task16_FinalCleanupAndDocs.md`
 
@@ -394,7 +410,12 @@ Bound via Options Pattern (`StubIdpOptions`, validated with `IValidateOptions`).
 
 ## 5. Execution workflow
 1. ✅ This `PLAN.md`.
-2. ⏸ **STOP — waiting for explicit confirmation.**
-3. On confirmation: generate `Task01_…md` … `Task16_…md` with full implementation steps,
-   before/after code snippets, pinned packages, exact paths, and per-task test phases
-   (unit + integration snippets).
+2. ✅ Confirmed by the repository owner.
+3. ✅ `Task01_…md` … `Task16_…md` generated with full implementation steps, before/after code
+   snippets, pinned packages, exact paths, and per-task test phases (unit + integration snippets).
+4. ⏳ Implementation, one task at a time in order, each gated on `dotnet test new/StubIdp.slnx`:
+   - ✅ **Task01** — solution scaffolded, both smoke tests green.
+   - ⏭ **Task02 is next** — configuration, options, and data files.
+   - ⏳ Task03 … Task16.
+5. When a task is finished, record its outcome in the task file (status + as-built notes +
+   carry-over items), tick it off in §3, and move the "next" marker above.

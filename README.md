@@ -17,8 +17,11 @@ application as a **.NET 10 Blazor Web App**, executed task-by-task from the spec
 |---|---|
 | `legacy/` | ✅ Forked and frozen as read-only reference (do not modify) |
 | `Migration-Plan/` | ✅ Complete — `PLAN.md` + `Task01` … `Task16`, each with its own test phase |
-| `new/` | ⏳ Target solution — scaffolded by `Task01`, not started yet |
-| Task progress | ⏳ Tasks run sequentially (`Task01` → `Task16`); a task is done only when its test phase passes (`dotnet test new/StubIdp.slnx`) |
+| `new/` | 🚧 Target solution — scaffolded by `Task01`; builds and tests green |
+| Task progress | ✅ `Task01` (scaffold) · ⏭ `Task02` (configuration & data files) is next · ⏳ `Task03`–`Task16` |
+
+Tasks run sequentially (`Task01` → `Task16`); a task is done only when its test phase passes
+(`dotnet test new/StubIdp.slnx`).
 
 ## Repository layout
 
@@ -65,8 +68,8 @@ Key decisions:
 
 | # | Task | # | Task |
 |---|---|---|---|
-| 01 | Scaffold solution | 09 | ArtifactResolve endpoint |
-| 02 | Configuration & data files | 10 | Layout & static assets |
+| 01 | ✅ Scaffold solution | 09 | ArtifactResolve endpoint |
+| 02 | ⏭ Configuration & data files | 10 | Layout & static assets |
 | 03 | Core services | 11 | Home page & SSO endpoint |
 | 04 | SAML protocol bridges | 12 | Logout flow |
 | 05 | Models port | 13 | DiscoveryService |
@@ -81,7 +84,7 @@ Tooling: **.NET SDK 10** (see `.devcontainer/Dockerfile`), Git.
 All commands run from the repository root:
 
 ```sh
-# Build & test (once new/ is scaffolded by Task01)
+# Build & test
 dotnet build new/StubIdp.slnx
 dotnet test new/StubIdp.slnx
 
@@ -94,6 +97,10 @@ dotnet run --project new/src/Sustainsys.Saml2.StubIdp
 # Dev container image
 make devcontainer
 ```
+
+> **Known restore warnings:** `Sustainsys.Saml2` 2.11.0 transitively pulls `Newtonsoft.Json`
+> 10.0.1 (NU1903) and `System.Drawing.Common` 4.7.0 (NU1904). Package versions are pinned by the
+> migration plan, so these advisories are accepted as warnings for now and tracked in `Task16`.
 
 ## License
 

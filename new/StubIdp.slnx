@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Sustainsys.Saml2.StubIdp/Sustainsys.Saml2.StubIdp.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Sustainsys.Saml2.StubIdp.IntegrationTests/Sustainsys.Saml2.StubIdp.IntegrationTests.csproj" />
+    <Project Path="tests/Sustainsys.Saml2.StubIdp.Tests/Sustainsys.Saml2.StubIdp.Tests.csproj" />
+  </Folder>
+</Solution>

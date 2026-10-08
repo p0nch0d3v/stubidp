@@ -18,6 +18,26 @@ application as a **.NET 10 Blazor Web App**. The authoritative specification liv
 Read `PLAN.md` before making any changes. Follow tasks in order (Task01 → Task16). A task is
 done only when its test phase passes.
 
+## Current progress
+
+| Task | State |
+|---|---|
+| Task01 — Scaffold solution, projects, test skeleton | ✅ done (build 0 errors, 1/1 unit + 1/1 integration test) |
+| Task02 — Configuration, options, and data files | ⏭ **next** |
+| Task03 … Task16 | ⏳ pending |
+
+`new/` is scaffolded and green: `new/StubIdp.slnx` with the Blazor Web App and both test
+projects. Known carry-over items from Task01:
+
+- the production csproj keeps the template's `BlazorDisableThrowNavigationException=true`
+  (Task13 decides whether to flip it for the static-SSR redirect);
+- transitive NuGet advisories NU1903 (`Newtonsoft.Json` 10.0.1) and NU1904
+  (`System.Drawing.Common` 4.7.0) come from `Sustainsys.Saml2` 2.11.0 and are accepted as
+  warnings — do not "fix" them by bumping packages (rule 6); Task16 documents them.
+
+When you finish a task: record status + as-built notes + carry-overs in its `TaskNN_*.md`, tick
+it off in `PLAN.md` §3 and §5, and update this table.
+
 ## Repository layout
 
 ```

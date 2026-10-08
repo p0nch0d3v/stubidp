@@ -1,5 +1,9 @@
 # Task01 — Scaffold solution, projects, and test skeleton
 
+> **Status: ✅ Completed.** Gate verified from the repository root: `dotnet build new/StubIdp.slnx`
+> → 0 errors, `dotnet test new/StubIdp.slnx` → 1/1 unit + 1/1 integration test passing.
+> See [As-built notes](#as-built-notes) for the exact resulting state and the two carry-over items.
+
 ## Goal and scope
 
 Create the .NET 10 Blazor Web App solution under `new/`, both test projects, package references, and a minimal passing unit/integration test baseline. Keep project and namespace names exactly as in `PLAN.md`. Do not modify `legacy/`.
@@ -51,9 +55,9 @@ Run `dotnet build new/StubIdp.slnx` and `dotnet test new/StubIdp.slnx` from the 
 
 ## Output checklist
 
-- `new/StubIdp.slnx` and the three named projects exist and target `net10.0`.
-- No Counter/Weather sample UI remains.
-- `Program` is public to the test host; both smoke tests pass.
+- [x] `new/StubIdp.slnx` and the three named projects exist and target `net10.0`.
+- [x] No Counter/Weather sample UI remains.
+- [x] `Program` is public to the test host; both smoke tests pass.
 
 ## Before/after code sketch
 
@@ -68,3 +72,53 @@ Run `dotnet build new/StubIdp.slnx` and `dotnet test new/StubIdp.slnx` from the 
 ```
 
 The exact test package pins are xunit 2.9.3, xunit.runner.visualstudio 4.0.0, Microsoft.NET.Test.Sdk 18.10.1, Moq 4.21.0, bUnit 2.11.3, Microsoft.AspNetCore.Mvc.Testing 10.0.12, and coverlet.collector 10.1.0.
+
+## As-built notes
+
+Commands used (from the repository root):
+
+```sh
+dotnet new blazor -o new/src/Sustainsys.Saml2.StubIdp -n Sustainsys.Saml2.StubIdp \
+  -f net10.0 --interactivity Server --no-restore      # per-component: --all-interactive omitted
+dotnet new sln -o new -n StubIdp --format slnx
+dotnet new xunit -o new/tests/Sustainsys.Saml2.StubIdp.Tests            -f net10.0
+dotnet new xunit -o new/tests/Sustainsys.Saml2.StubIdp.IntegrationTests -f net10.0
+dotnet sln new/StubIdp.slnx add <all three projects>
+```
+
+Resulting files of record:
+
+| Path | Notes |
+|---|---|
+| `new/StubIdp.slnx` | slnx format; `/src/` + `/tests/` solution folders |
+| `new/src/Sustainsys.Saml2.StubIdp/Sustainsys.Saml2.StubIdp.csproj` | `Sustainsys.Saml2` 2.11.0, `JsonSchema.Net` 9.4.0, `<GenerateDocumentationFile>true</GenerateDocumentationFile>` |
+| `new/src/Sustainsys.Saml2.StubIdp/Program.cs` | template pipeline + documented `public partial class Program { }` at the bottom |
+| `new/tests/Sustainsys.Saml2.StubIdp.Tests/Unit/SmokeTests.cs` | namespace `Sustainsys.Saml2.StubIdp.Tests.Unit` |
+| `new/tests/Sustainsys.Saml2.StubIdp.IntegrationTests/Infrastructure/SmokeTests.cs` | namespace `Sustainsys.Saml2.StubIdp.IntegrationTests.Infrastructure`; `ArgumentNullException.ThrowIfNull(factory)` per PLAN §4 |
+
+Decisions taken beyond the literal spec:
+
+- `<GenerateDocumentationFile>true</GenerateDocumentationFile>` was enabled already in Task01
+  (PLAN §4 requires it for the production project) and both smoke-test types plus the `Program`
+  partial carry XML doc comments.
+- Both test projects got a `ProjectReference` to the production project — required by
+  `WebApplicationFactory<Program>` and by every later task.
+- Template `UnitTest1.cs` files were deleted along with `Counter.razor` / `Weather.razor` and
+  their `NavMenu.razor` links. The bootstrap assets under `wwwroot/lib/bootstrap/` and
+  `wwwroot/app.css` were **kept** as the generated static-asset plumbing (step 3) — Task10
+  replaces them with `site.css` + LibMan `normalize.css`.
+- The now-redundant `new/.gitkeep` placeholder was removed.
+
+### Carry-over items (not fixed in Task01)
+
+1. **`<BlazorDisableThrowNavigationException>true</BlazorDisableThrowNavigationException>`** was
+   emitted by the .NET 10 template into the production csproj and left untouched. Task13 must
+   either set it to `false` or choose the minimal-endpoint redirect mechanism, because
+   `NavigationManager` + `NavigationException` cannot be used for the static-SSR DiscoveryService
+   redirect while this property is `true`.
+2. **Transitive NuGet advisories (NU1903 / NU1904).** `Sustainsys.Saml2` 2.11.0 brings
+   `Newtonsoft.Json` 10.0.1 (high) and `System.Drawing.Common` 4.7.0 (critical). These surface as
+   restore warnings on all three projects. They cannot be resolved without bumping or pinning
+   transitive packages, which PLAN §2.5 / AGENTS.md rule 6 forbid. Accepted as warnings; Task16
+   documents them in the `new/` README.
+
