@@ -6,11 +6,27 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <BlazorDisableThrowNavigationException>true</BlazorDisableThrowNavigationException>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <!-- Certificate private-key passwords are supplied through user secrets / environment
+         variables only; they are never stored in appsettings.json. See Task02. -->
+    <UserSecretsId>54e89770-5ba7-4528-97b9-1f0d9f5c72ea</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Sustainsys.Saml2" Version="2.11.0" />
     <PackageReference Include="JsonSchema.Net" Version="9.4.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Signing certificates. The SDK's default content glob only covers *.config and *.json,
+         so the certificate files need an explicit item to reach the build output. -->
+    <Content Include="App_Data/*.pfx;App_Data/*.cer"
+             CopyToOutputDirectory="PreserveNewest"
+             CopyToPublishDirectory="PreserveNewest" />
+    <!-- Tenant configuration files. Already picked up by the SDK's **/*.json content glob; the
+         copy semantics are restated here so the data contract is visible in the project file. -->
+    <Content Update="App_Data/*.json"
+             CopyToOutputDirectory="PreserveNewest"
+             CopyToPublishDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>

@@ -17,8 +17,8 @@ application as a **.NET 10 Blazor Web App**, executed task-by-task from the spec
 |---|---|
 | `legacy/` | ✅ Forked and frozen as read-only reference (do not modify) |
 | `Migration-Plan/` | ✅ Complete — `PLAN.md` + `Task01` … `Task16`, each with its own test phase |
-| `new/` | 🚧 Target solution — scaffolded by `Task01`; builds and tests green |
-| Task progress | ✅ `Task01` (scaffold) · ⏭ `Task02` (configuration & data files) is next · ⏳ `Task03`–`Task16` |
+| `new/` | 🚧 Target solution — scaffolded and configured; builds and tests green (39 tests) |
+| Task progress | ✅ `Task01` (scaffold) · ✅ `Task02` (configuration & data files) · ⏭ `Task03` (core services) is next · ⏳ `Task04`–`Task16` |
 
 Tasks run sequentially (`Task01` → `Task16`); a task is done only when its test phase passes
 (`dotnet test new/StubIdp.slnx`).
@@ -34,6 +34,9 @@ legacy/           # READ-ONLY reference: the original Sustainsys.Saml2 fork (MVC
 new/              # TARGET: the migrated .NET 10 solution (created by Task01)
   StubIdp.slnx
   src/Sustainsys.Saml2.StubIdp/             # Blazor Web App (net10.0)
+    Configuration/                          # StubIdpOptions + validation (Task02)
+    App_Data/                               # tenant JSON + signing certificates (data files)
+    wwwroot/Content/                        # IdpConfigurationSchema.json (served, legacy URL)
   tests/Sustainsys.Saml2.StubIdp.Tests/     # xUnit + Moq + bUnit (unit/component)
   tests/Sustainsys.Saml2.StubIdp.IntegrationTests/  # xUnit + WebApplicationFactory
 Migration-Plan/   # migration specification: PLAN.md + Task01..Task16
@@ -69,8 +72,8 @@ Key decisions:
 | # | Task | # | Task |
 |---|---|---|---|
 | 01 | ✅ Scaffold solution | 09 | ArtifactResolve endpoint |
-| 02 | ⏭ Configuration & data files | 10 | Layout & static assets |
-| 03 | Core services | 11 | Home page & SSO endpoint |
+| 02 | ✅ Configuration & data files | 10 | Layout & static assets |
+| 03 | ⏭ Core services | 11 | Home page & SSO endpoint |
 | 04 | SAML protocol bridges | 12 | Logout flow |
 | 05 | Models port | 13 | DiscoveryService |
 | 06 | Metadata / federation endpoints | 14 | Manage tenant page |
@@ -101,6 +104,36 @@ make devcontainer
 > **Known restore warnings:** `Sustainsys.Saml2` 2.11.0 transitively pulls `Newtonsoft.Json`
 > 10.0.1 (NU1903) and `System.Drawing.Common` 4.7.0 (NU1904). Package versions are pinned by the
 > migration plan, so these advisories are accepted as warnings for now and tracked in `Task16`.
+
+### Configuration
+
+Settings live in the `StubIdp` section of
+`new/src/Sustainsys.Saml2.StubIdp/appsettings.json` and bind to `StubIdpOptions`
+(validated at startup, so a bad section fails the host instead of the first request):
+
+| Key | Default | Replaces |
+|---|---|---|
+| `DefaultAcsUrl` | `https://sp.example.com/SAML2/Acs` | `appSettings:defaultAcsUrl` |
+| `DefaultNameId` | `JohnDoe` | `appSettings:defaultNameId` |
+| `DataPath` | `App_Data` | `Server.MapPath("~/App_Data")` |
+| `Certificates:Default:File` | `App_Data/stubidp.sustainsys.com.pfx` | `CertificateHelper` |
+| `Certificates:LegacyKentor:File` + `:HostName` | `App_Data/Kentor.AuthServices.StubIdp.pfx`, `stubidp.kentor.se` | `CertificateHelper` host switch |
+
+Data files are read from `DataPath` (relative to the content root): per-tenant configuration
+`App_Data/{guid}.json` (`default.json` for the default tenant) plus the signing certificates.
+The tenant JSON schema is served at `/Content/IdpConfigurationSchema.json`, as in the legacy app.
+
+The bundled `.pfx` files are **public test certificates with no password** and are committed, so a
+fresh clone runs as-is. For a real certificate, supply the password out-of-band — never in
+`appsettings.json`:
+
+```sh
+dotnet user-secrets --project new/src/Sustainsys.Saml2.StubIdp \
+  set "StubIdp:Certificates:Default:Password" "<password>"
+# and, if needed:
+dotnet user-secrets --project new/src/Sustainsys.Saml2.StubIdp \
+  set "StubIdp:Certificates:LegacyKentor:Password" "<password>"
+```
 
 ## License
 

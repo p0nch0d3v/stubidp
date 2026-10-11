@@ -1,8 +1,11 @@
 using Sustainsys.Saml2.StubIdp.Components;
+using Sustainsys.Saml2.StubIdp.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+builder.Services.AddStubIdpOptions(builder.Configuration);
+
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 

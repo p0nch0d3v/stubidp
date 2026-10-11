@@ -54,7 +54,7 @@ test tasks).
 - `Views/` (7 cshtml) + `Scripts/ViewIndex.js` (select2 user picker, ICanHaz/mustache attribute
   rows, js.cookie remember-me, show/hide details) + `Content/Site.less` + `normalize.css`.
 
-### 1.5 Web.config settings to migrate (`legacy/.../Web.config`)
+### 1.5 Web.config settings to migrate (`legacy/.../Web.config`) — ✅ done in Task02
 - `appSettings:defaultAcsUrl` = `https://sp.example.com/SAML2/Acs` → `appsettings.json`
 - `appSettings:defaultNameId` = `JohnDoe` → `appsettings.json`
 - dotless / bundling / IIS handler config → removed (LibMan + static CSS instead).
@@ -104,7 +104,7 @@ do both (Home `/`, Logout `/Logout`, DiscoveryService), the request shape decide
 input → protocol path; otherwise → UI path. The exact branching is specified per task
 (Tasks 11–13).
 
-### 2.4 Configuration model (Task02)
+### 2.4 Configuration model (Task02 — ✅ in place)
 `appsettings.json`:
 ```json
 "StubIdp": {
@@ -120,6 +120,13 @@ input → protocol path; otherwise → UI path. The exact branching is specified
 Bound via Options Pattern (`StubIdpOptions`, validated with `IValidateOptions`).
 **Never** store private-key passwords in `appsettings.json` — `dotnet user-secrets` for
 `StubIdp:Certificates:*:Password`; files stay out of source control guidance documented in Task02.
+
+As built: `Configuration/{StubIdpOptions,CertificatesOptions,CertificateOptions,
+StubIdpOptionsValidator,StubIdpOptionsServiceCollectionExtensions}.cs`, registered from
+`Program.cs` via `AddStubIdpOptions(builder.Configuration)` with `ValidateOnStart()`. Data files
+live in `new/src/.../App_Data/` (tenant JSON + `.pfx`/`.cer`, tracked in git like `legacy/`, empty
+passwords) and the tenant schema in `new/src/.../wwwroot/Content/IdpConfigurationSchema.json` so
+the legacy public URL `/Content/IdpConfigurationSchema.json` is preserved.
 
 ### 2.5 Pinned package versions (verified against nuget.org)
 | Package | Version | Project |
@@ -148,8 +155,8 @@ Bound via Options Pattern (`StubIdpOptions`, validated with `IValidateOptions`).
 
 ## 3. Task List (sequential)
 
-**Progress:** Task01 ✅ completed · Task02 … Task16 ⏳ pending. A task is done only when its own
-test phase passes (`dotnet test new/StubIdp.slnx`).
+**Progress:** Task01 ✅ · Task02 ✅ completed · Task03 … Task16 ⏳ pending. A task is done only when
+its own test phase passes (`dotnet test new/StubIdp.slnx`).
 
 ### Task01 — Scaffold solution, projects, and test skeleton ✅
 - **Goal:** Create `new/StubIdp.slnx`, the Blazor Web App (`net10.0`, `--interactivity Server`,
@@ -168,7 +175,7 @@ test phase passes (`dotnet test new/StubIdp.slnx`).
   NU1903/NU1904 advisories from `Sustainsys.Saml2` 2.11.0 (document in Task16).
 - 📄 `Task01_ScaffoldSolution.md`
 
-### Task02 — Configuration, options, and data files
+### Task02 — Configuration, options, and data files ✅
 - **Goal:** `appsettings.json` `StubIdp` section; `StubIdpOptions` + validation; user-secrets
   setup for certificate passwords; copy `legacy/.../App_Data/default.json`,
   `App_Data/2273dd5a-… .json` (sample tenant), `App_Data/*.pfx|*.cer`,
@@ -177,6 +184,17 @@ test phase passes (`dotnet test new/StubIdp.slnx`).
 - **Legacy sources:** `Web.config` (appSettings), `App_Data/*`, `Content/IdpConfigurationSchema.json`.
 - **Test phase:** options bind/validate from JSON; missing-data-path fails validation; data files
   copied on build; secrets documented (no password in repo).
+- **Status:** ✅ done — clean rebuild 0 errors, 18/18 unit + 21/21 integration tests green.
+  Five types under `Configuration/`, registered via `AddStubIdpOptions(...)` +
+  `ValidateOnStart()`; `<UserSecretsId>` added; all seven data files copied byte-identically
+  (MD5-verified) and asserted present both at `ContentRootPath/{DataPath}` and in the build
+  output. Two decisions beyond the spec: the schema went to **`wwwroot/Content/`** (preserves the
+  legacy public URL `/Content/IdpConfigurationSchema.json` and stays disk-readable — no code was
+  needed for `.json` MIME parity) and the `.pfx` files are **tracked in git** as in `legacy/`
+  (public test certs, empty passwords, keeps the Task16 clean-checkout gate working). Certificates
+  needed explicit `<Content Include>` items because the SDK glob only covers `*.config`/`*.json`.
+  Four carry-overs recorded in the task file, notably: `wwwroot` is not copied to `bin` in .NET 10,
+  so **Task14 must read the schema via `IWebHostEnvironment.WebRootPath`**.
 - 📄 `Task02_ConfigurationAndDataFiles.md`
 
 ### Task03 — Core services: certificate, URL resolution, tenant store
@@ -186,6 +204,10 @@ test phase passes (`dotnet test new/StubIdp.slnx`).
   on `System.Text.Json`, MD5 ETag hex-uppercase, `GetOrAdd` semantics, save+cache-update).
 - **Legacy sources:** `CertificateHelper.cs`, `UrlResolver.cs`, `Controllers/BaseController.cs`,
   `Models/IdpConfigurationModel.cs`.
+- **Carry-over from Task02:** `StubIdpOptions.DataPath` is a raw relative string; rooting it
+  against `IHostEnvironment.ContentRootPath` belongs to the services added here. Certificate
+  passwords come from `options.Certificates.*.Password` (`null`/empty = unencrypted, which is what
+  the bundled test certificates use).
 - **Test phase:** unit tests — cert selection per host (incl. `stubidp.kentor.se`); URL resolution
   with/without GUID and app path-base; store cache hit/miss, ETag stability, unknown-GUID → null.
 - 📄 `Task03_CoreServices.md`
@@ -339,6 +361,11 @@ test phase passes (`dotnet test new/StubIdp.slnx`).
   entityId/manage URLs, GDPR panel, schema link, `MetadataLinks`.
 - **Legacy sources:** `Controllers/ManageController.cs` (`Index` GET/POST),
   `Views/Manage/Index.cshtml`, `Models/ManageIdpModel.cs`.
+- **Carry-over from Task02:** the schema file is at
+  `new/src/.../wwwroot/Content/IdpConfigurationSchema.json` and is already served at the legacy
+  public URL `/Content/IdpConfigurationSchema.json` (use that for the schema link). Read it from
+  disk via `IWebHostEnvironment.WebRootPath` — .NET 10 does not copy `wwwroot` into `bin`, so
+  `AppContext.BaseDirectory` will not find it.
 - **Test phase:** unit — schema validation accept/reject cases incl. legacy sample files; bUnit —
   template shown for new tenant, error on invalid JSON/schema, default-GUID rejection, successful
   save calls store; integration — GET 200 contains JSON; saved tenant observable via
@@ -366,7 +393,14 @@ test phase passes (`dotnet test new/StubIdp.slnx`).
   update repository-level docs if required. **Carry-over from Task01:** document the accepted
   transitive NuGet advisories (NU1903 `Newtonsoft.Json` 10.0.1, NU1904 `System.Drawing.Common`
   4.7.0 — both via `Sustainsys.Saml2` 2.11.0) in the `new/` README, including why they are not
-  resolved (pinned-version rule).
+  resolved (pinned-version rule). **Carry-overs from Task02:** document the exact commands
+  `dotnet user-secrets --project new/src/Sustainsys.Saml2.StubIdp set
+  "StubIdp:Certificates:Default:Password" "<pwd>"` (and the `LegacyKentor` equivalent) plus the
+  fact that the bundled test certificates need no password; note that the `.pfx`/`.cer` files are
+  intentionally tracked in git (public test certs, as in `legacy/`), which also means `.gitignore`
+  gets **no** `App_Data/*.pfx` rule; and decide whether
+  `new/src/.../appsettings.Development.json` (currently untracked and not ignored) is committed or
+  ignored.
 - **Test phase:** clean-checkout simulation (restore → build → test) passes from scratch.
 - 📄 `Task16_FinalCleanupAndDocs.md`
 
@@ -415,7 +449,8 @@ test phase passes (`dotnet test new/StubIdp.slnx`).
    snippets, pinned packages, exact paths, and per-task test phases (unit + integration snippets).
 4. ⏳ Implementation, one task at a time in order, each gated on `dotnet test new/StubIdp.slnx`:
    - ✅ **Task01** — solution scaffolded, both smoke tests green.
-   - ⏭ **Task02 is next** — configuration, options, and data files.
-   - ⏳ Task03 … Task16.
+   - ✅ **Task02** — configuration, options, and data files; 39 tests green.
+   - ⏭ **Task03 is next** — core services: certificate, URL resolution, tenant store.
+   - ⏳ Task04 … Task16.
 5. When a task is finished, record its outcome in the task file (status + as-built notes +
    carry-over items), tick it off in §3, and move the "next" marker above.
