@@ -155,7 +155,7 @@ the legacy public URL `/Content/IdpConfigurationSchema.json` is preserved.
 
 ## 3. Task List (sequential)
 
-**Progress:** Task01 ✅ · Task02 ✅ completed · Task03 … Task16 ⏳ pending. A task is done only when
+**Progress:** Task01 ✅ · Task02 ✅ · Task03 ✅ completed · Task04 … Task16 ⏳ pending. A task is done only when
 its own test phase passes (`dotnet test new/StubIdp.slnx`).
 
 ### Task01 — Scaffold solution, projects, and test skeleton ✅
@@ -197,7 +197,7 @@ its own test phase passes (`dotnet test new/StubIdp.slnx`).
   so **Task14 must read the schema via `IWebHostEnvironment.WebRootPath`**.
 - 📄 `Task02_ConfigurationAndDataFiles.md`
 
-### Task03 — Core services: certificate, URL resolution, tenant store
+### Task03 — Core services: certificate, URL resolution, tenant store ✅
 - **Goal:** `CertificateService` (host-aware cert + `KeyDescriptor`, port of `CertificateHelper.cs`);
   `StubIdpUrlResolver` (port of `UrlResolver.cs`, `IHttpContextAccessor`-based, GUID-segment aware);
   `ITenantConfigurationStore` (port of `BaseController` file/caching logic + `IdpConfigurationModel`
@@ -210,6 +210,15 @@ its own test phase passes (`dotnet test new/StubIdp.slnx`).
   the bundled test certificates use).
 - **Test phase:** unit tests — cert selection per host (incl. `stubidp.kentor.se`); URL resolution
   with/without GUID and app path-base; store cache hit/miss, ETag stability, unknown-GUID → null.
+- **Status:** ✅ done — clean rebuild 0 errors, **77/77 unit + 28/28 integration** tests green
+  (66 new). Five production types under `Models/` + `Services/`, registered via
+  `AddStubIdpCoreServices()`. Notable as-built decisions: lazy singleton certificate loading with
+  clear `InvalidOperationException` config errors (eager startup load would have masked the Task02
+  `OptionsValidationException` assertion); `MachineKeySet | EphemeralKeySet` via the non-obsolete
+  `X509CertificateLoader`; async `Lazy<Task>` GetOrAdd cache with fault eviction and cached-null
+  legacy parity; save normalizes to indented JSON (`UnsafeRelaxedJsonEscaping`) and writes
+  atomically via temp file + move. Two carry-overs recorded in the task file (Task07 `.cer` path
+  selection; documented cached-null semantics for Task14).
 - 📄 `Task03_CoreServices.md`
 
 ### Task04 — SAML bridges: `HttpRequestData` + `CommandResult` → `IResult`
@@ -450,7 +459,8 @@ its own test phase passes (`dotnet test new/StubIdp.slnx`).
 4. ⏳ Implementation, one task at a time in order, each gated on `dotnet test new/StubIdp.slnx`:
    - ✅ **Task01** — solution scaffolded, both smoke tests green.
    - ✅ **Task02** — configuration, options, and data files; 39 tests green.
-   - ⏭ **Task03 is next** — core services: certificate, URL resolution, tenant store.
-   - ⏳ Task04 … Task16.
+   - ✅ **Task03** — core services: certificate, URL resolution, tenant store; 105 tests green.
+   - ⏭ **Task04 is next** — SAML bridges: `HttpRequestData` + `CommandResult` → `IResult`.
+   - ⏳ Task05 … Task16.
 5. When a task is finished, record its outcome in the task file (status + as-built notes +
    carry-over items), tick it off in §3, and move the "next" marker above.

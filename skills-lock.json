@@ -1,6 +1,12 @@
 {
   "version": 1,
   "skills": {
+    "blazor-expert": {
+      "source": "markpitt/claude-skills",
+      "sourceType": "github",
+      "skillPath": "skills/blazor-expert/SKILL.md",
+      "computedHash": "d97b31578cd28e36c3fe572f465002fbddff41f78a8894b453ffa4c919df6f49"
+    },
     "dotnet-best-practices": {
       "source": "github/awesome-copilot",
       "sourceType": "github",
