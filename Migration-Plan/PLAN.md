@@ -155,7 +155,7 @@ the legacy public URL `/Content/IdpConfigurationSchema.json` is preserved.
 
 ## 3. Task List (sequential)
 
-**Progress:** Task01 ✅ · Task02 ✅ · Task03 ✅ completed · Task04 … Task16 ⏳ pending. A task is done only when
+**Progress:** Task01 ✅ · Task02 ✅ · Task03 ✅ · Task04 ✅ completed · Task05 … Task16 ⏳ pending. A task is done only when
 its own test phase passes (`dotnet test new/StubIdp.slnx`).
 
 ### Task01 — Scaffold solution, projects, and test skeleton ✅
@@ -232,6 +232,21 @@ its own test phase passes (`dotnet test new/StubIdp.slnx`).
 - **Test phase:** unit tests for Redirect (302 + Location), auto-post (`text/html` form containing
   `SAMLResponse`), header copy, status passthrough; `HttpRequestData` mapping (method, URL, form,
   path base); TestServer round-trip executing the `IResult`.
+- **Status:** ✅ done — clean rebuild 0 errors, 125/125 unit + 34/34 integration tests green.
+  Content types without a charset get `; charset=utf-8` appended (legacy System.Web
+  parity for the library's auto-post `text/html`). Three types under `Saml/`: `HttpRequestDataExtensions` (async + sync overloads,
+  7-arg `HttpRequestData` ctor with empty cookies + no-op decryptor + user passthrough, malformed
+  form bodies return empty collection so binding detection still runs), `CommandResultIResult`
+  (forces **HTTP 302** on redirects — legacy MVC parity, not the library's 303 SeeOther),
+  `CommandResultExtensions.ToResult()`. Library-generated `Location.OriginalString` is copied
+  byte-for-byte so redirect-binding query strings (RelayState, SAMLRequest/Response) survive
+  intact. `Cacheability` is ignored and no `Cache-Control` header is emitted (legacy MVC
+  `ToActionResult()` never mapped it). Unsupported cookie/request-state/principal/relay-data/local-session
+  members throw `NotSupportedException` before any response is written. Integration tests use a self-contained `HostBuilder +
+  TestServer` harness (4 cases) — the full `WebApplicationFactory<Program>` triggers a static-
+  asset manifest resolution against `<TestAssembly>.staticwebassets.endpoints.json` which
+  doesn't exist when the manifest is named after the production assembly. The full StubIdp
+  integration harness stays in place for Tasks 11/12/15.
 - 📄 `Task04_SamlProtocolBridges.md`
 
 ### Task05 — Port models (assertion, logout, discovery, manage, metadata)
@@ -460,7 +475,8 @@ its own test phase passes (`dotnet test new/StubIdp.slnx`).
    - ✅ **Task01** — solution scaffolded, both smoke tests green.
    - ✅ **Task02** — configuration, options, and data files; 39 tests green.
    - ✅ **Task03** — core services: certificate, URL resolution, tenant store; 105 tests green.
-   - ⏭ **Task04 is next** — SAML bridges: `HttpRequestData` + `CommandResult` → `IResult`.
-   - ⏳ Task05 … Task16.
+   - ✅ **Task04** — SAML bridges: `HttpRequestData` + `CommandResult` → `IResult`; 159 tests green.
+   - ⏭ **Task05 is next** — model port (assertion, logout, discovery, manage, metadata).
+   - ⏳ Task06 … Task16.
 5. When a task is finished, record its outcome in the task file (status + as-built notes +
    carry-over items), tick it off in §3, and move the "next" marker above.

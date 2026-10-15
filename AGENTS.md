@@ -25,7 +25,7 @@ done only when its test phase passes.
 | Task01 — Scaffold solution, projects, test skeleton | ✅ done (build 0 errors, 1/1 unit + 1/1 integration test) |
 | Task02 — Configuration, options, and data files | ✅ done (build 0 errors, 18/18 unit + 21/21 integration tests) |
 | Task03 — Core services: certificate, URL resolution, tenant store | ✅ done (build 0 errors, 77/77 unit + 28/28 integration tests) |
-| Task04 — SAML bridges | ⏭ **next** |
+| Task04 — SAML bridges (`HttpRequestData` + `CommandResult` → `IResult`) | ✅ done (build 0 errors, 125/125 unit + 34/34 integration tests) |
 | Task05 … Task16 | ⏳ pending |
 
 `new/` is scaffolded and green: `new/StubIdp.slnx` with the Blazor Web App and both test
