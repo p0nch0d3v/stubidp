@@ -155,7 +155,7 @@ the legacy public URL `/Content/IdpConfigurationSchema.json` is preserved.
 
 ## 3. Task List (sequential)
 
-**Progress:** Task01 ✅ · Task02 ✅ · Task03 ✅ · Task04 ✅ completed · Task05 … Task16 ⏳ pending. A task is done only when
+**Progress:** Task01 ✅ · Task02 ✅ · Task03 ✅ · Task04 ✅ · Task05 ✅ completed · Task06 … Task16 ⏳ pending. A task is done only when
 its own test phase passes (`dotnet test new/StubIdp.slnx`).
 
 ### Task01 — Scaffold solution, projects, and test skeleton ✅
@@ -249,7 +249,7 @@ its own test phase passes (`dotnet test new/StubIdp.slnx`).
   integration harness stays in place for Tasks 11/12/15.
 - 📄 `Task04_SamlProtocolBridges.md`
 
-### Task05 — Port models (assertion, logout, discovery, manage, metadata)
+### Task05 — Port models (assertion, logout, discovery, manage, metadata) ✅
 - **Goal:** Port all 10 model classes (`AssertionModel`, `AttributeStatementModel`,
   `HomePageModel`, `IdpConfigurationModel`, the three logout models, `DiscoveryServiceModel`,
   `ManageIdpModel`, `MetadataModel`) to `new/src/.../Models/`, replacing
@@ -261,6 +261,20 @@ its own test phase passes (`dotnet test new/StubIdp.slnx`).
 - **Test phase:** unit tests — `ToSaml2Response` (claims incl. `SessionIndex`, NameId format,
   audience, InResponseTo, issuer = metadata URL), `ToLogoutRequest/Response` (destination, signing
   cert SHA-256 alg), metadata XML contains SSO/SLO/Artifact endpoints + key; defaults from options.
+- **Status:** ✅ done — clean rebuild 0 errors, **153/153 unit + 34/34 integration** tests green
+  (28 new). Nine model classes under `Models/` (`IdpConfigurationModel` was already ported in
+  Task03) plus a scoped `Services/MetadataService.cs` registered in `AddStubIdpCoreServices()`.
+  All static legacy dependencies became explicit: `AssertionModel.Create(StubIdpOptions)`,
+  `ToSaml2Response/ToLogoutRequest/ToLogoutResponse(StubIdpUrlResolver, X509Certificate2)`,
+  `DiscoveryServiceModel.Create(StubIdpUrlResolver)`; `MetadataService` uses primary-constructor
+  DI `(StubIdpUrlResolver, CertificateService, IHttpContextAccessor)` and returns **unsigned**
+  descriptors — signing stays in the endpoints (Task06), as in the legacy controllers.
+  `DiscoveryServiceModel` keeps the lowercase protocol property names (`entityID`, `@return`,
+  `returnIDParam`, `isPassive`) for binding parity. Notable environment fact: `Saml2Id`/
+  `Saml2NameIdentifier` come from `Microsoft.IdentityModel.Tokens.Saml2` (transitive via
+  Sustainsys.Saml2 2.11.0), and shared test state must use a plain `DefaultHttpContext` —
+  a static `HttpContextAccessor` loses its `AsyncLocal` context across xUnit parallel threads.
+  Carry-overs for Tasks 06/11/12/13 recorded in the task file.
 - 📄 `Task05_ModelsPort.md`
 
 ### Task06 — Metadata & Federation endpoints
@@ -476,7 +490,8 @@ its own test phase passes (`dotnet test new/StubIdp.slnx`).
    - ✅ **Task02** — configuration, options, and data files; 39 tests green.
    - ✅ **Task03** — core services: certificate, URL resolution, tenant store; 105 tests green.
    - ✅ **Task04** — SAML bridges: `HttpRequestData` + `CommandResult` → `IResult`; 159 tests green.
-   - ⏭ **Task05 is next** — model port (assertion, logout, discovery, manage, metadata).
-   - ⏳ Task06 … Task16.
+   - ✅ **Task05** — models + metadata service (assertion, logout, discovery, manage, metadata); 187 tests green.
+   - ⏭ **Task06 is next** — Metadata & Federation endpoints.
+   - ⏳ Task07 … Task16.
 5. When a task is finished, record its outcome in the task file (status + as-built notes +
    carry-over items), tick it off in §3, and move the "next" marker above.

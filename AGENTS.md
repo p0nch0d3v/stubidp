@@ -26,7 +26,8 @@ done only when its test phase passes.
 | Task02 — Configuration, options, and data files | ✅ done (build 0 errors, 18/18 unit + 21/21 integration tests) |
 | Task03 — Core services: certificate, URL resolution, tenant store | ✅ done (build 0 errors, 77/77 unit + 28/28 integration tests) |
 | Task04 — SAML bridges (`HttpRequestData` + `CommandResult` → `IResult`) | ✅ done (build 0 errors, 125/125 unit + 34/34 integration tests) |
-| Task05 … Task16 | ⏳ pending |
+| Task05 — Models port (assertion, logout, discovery, manage) + `MetadataService` | ✅ done (build 0 errors, 153/153 unit + 34/34 integration tests) |
+| Task06 … Task16 | ⏳ pending |
 
 `new/` is scaffolded and green: `new/StubIdp.slnx` with the Blazor Web App and both test
 projects. Known carry-over items from Task01:

@@ -8,7 +8,8 @@ public static class StubIdpServiceCollectionExtensions
     /// <summary>
     /// Registers the core services of the stub identity provider:
     /// <see cref="CertificateService"/> (singleton, owns the signing certificates),
-    /// <see cref="StubIdpUrlResolver"/> (scoped, requires an active request) and
+    /// <see cref="StubIdpUrlResolver"/> (scoped, requires an active request),
+    /// <see cref="MetadataService"/> (scoped, builds the metadata descriptors) and
     /// <see cref="ITenantConfigurationStore"/> (singleton), plus the
     /// <see cref="IHttpContextAccessor"/> the URL resolver depends on.
     /// </summary>
@@ -23,6 +24,7 @@ public static class StubIdpServiceCollectionExtensions
         services.AddHttpContextAccessor();
         services.AddSingleton<CertificateService>();
         services.AddScoped<StubIdpUrlResolver>();
+        services.AddScoped<MetadataService>();
         services.AddSingleton<ITenantConfigurationStore, TenantConfigurationStore>();
 
         return services;

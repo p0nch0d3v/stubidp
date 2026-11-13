@@ -12,7 +12,7 @@ public class StubIdpServiceCollectionExtensionsTests
     /// <summary>
     /// Verifies that the core services are registered with the lifetimes required by their
     /// design: the certificate service and the tenant store are singletons, the URL resolver
-    /// is scoped to the request.
+    /// and the metadata service are scoped to the request.
     /// </summary>
     [Fact]
     public void Registers_core_services_with_expected_lifetimes()
@@ -25,6 +25,8 @@ public class StubIdpServiceCollectionExtensionsTests
             d.ServiceType == typeof(CertificateService) && d.Lifetime == ServiceLifetime.Singleton);
         Assert.Contains(services, d =>
             d.ServiceType == typeof(StubIdpUrlResolver) && d.Lifetime == ServiceLifetime.Scoped);
+        Assert.Contains(services, d =>
+            d.ServiceType == typeof(MetadataService) && d.Lifetime == ServiceLifetime.Scoped);
         Assert.Contains(services, d =>
             d.ServiceType == typeof(ITenantConfigurationStore)
             && d.ImplementationType == typeof(TenantConfigurationStore)
